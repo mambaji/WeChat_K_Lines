@@ -39,6 +39,7 @@ function init (pconfig) {
   for (let i in pconfig) {
     config[i] = pconfig[i]
   }
+  config.kNum = config.datas.length
   // 计算主画布宽度
   config.mainCWidth = (config.kWidth + config.k_margin_right) * config.kNum + config.main_margin_left
   config.mainCWidth < (config.wWidth - config.ycWidth) && (config.mainCWidth = config.wWidth - config.ycWidth)
