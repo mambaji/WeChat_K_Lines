@@ -1,0 +1,328 @@
+<style lang="less">
+page {
+  background: #f5f8fd;
+}
+.scroll_box {
+  overflow: auto;
+}
+.canvas-box {
+  position: relative;
+  margin-top: 40rpx;
+  background: #fff;
+  padding-top: 40rpx;
+}
+.goods-box {
+  width: 92%;
+  margin-left: 4%;
+  background: #fff;
+  border-radius: 15rpx;
+  color: #fff;
+  padding: 30rpx 10rpx;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 24px 0px #d7d7d7;
+  margin-top: 30rpx;
+}
+.goods-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .goods-title_name {
+    font-size: 28rpx;
+    color: #fff;
+    font-weight: bold;
+    background: #394243;
+    padding: 5rpx 15rpx;
+    border-radius: 8rpx;
+  }
+  .i {
+    background: #dfdede;
+  }
+  .line {
+    width: 30%;
+    height: 1px;
+  }
+}
+.goods-content {
+  margin-top: 40rpx;
+}
+.goods-content_item {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: #333;
+  font-size: 28rpx;
+  margin-top: 20rpx;
+  i {
+    color: #333;
+  }
+  .label1 {
+    width: 33%;
+    text-align: center;
+    color: #27ae5b;
+  }
+  .label2 {
+    width: 33%;
+    text-align: center;
+    color: #e31a20;
+  }
+  .label3 {
+    width: 33%;
+    text-align: center;
+  }
+  .up {
+    color: #e31a20;
+  }
+  .down {
+    color: #27ae5b;
+  }
+  .label4 {
+    width: 33%;
+    text-align: center;
+    color: #e31a20;
+  }
+  .label5 {
+    width: 33%;
+    text-align: center;
+    color: #27ae5b;
+  }
+  .label6 {
+    width: 33%;
+    text-align: center;
+    color: #333;
+  }
+}
+
+.goods-date {
+  font-size: 26rpx;
+  color: #999;
+  padding-right: 40rpx;
+  text-align: right;
+  margin-top: 30rpx;
+}
+.cover-view {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  padding: 5rpx;
+  background: #fff;
+  border: 1rpx solid #f2f2f2;
+  box-shadow: 2rpx 2rpx 2rpx 2rpx #cbcdd5;
+  border-radius: 8rpx;
+  z-index: 9999;
+}
+.scale-img {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 5rpx;
+}
+</style>
+<template>
+  <titlebar leftArrow=""
+            titleName="K线图表"
+            bgcolor=""></titlebar>
+  <!-- 交易对信息 -->
+  <view class="goods-box">
+    <view class="goods-title">
+      <view class="i line"></view>
+      <view class="goods-title_name">{{goodsName}}</view>
+      <view class="i line"></view>
+    </view>
+    <view class="goods-content">
+      <view class="goods-content_item">
+        <view class="label1"><i>开：</i> {{curMsg.open}}</view>
+        <view class="label2"><i>收：</i>{{curMsg.close}}</view>
+        <view class="label3 up"
+              wx:if="{{curMsg.open<=curMsg.close}}"><i>涨：</i>{{wxFormat.upsAndDowns(curMsg.open,curMsg.close,'up')}}</view>
+        <view class="label3 down"
+              wx:if="{{curMsg.open>curMsg.close}}"><i>跌：</i>-{{wxFormat.upsAndDowns(curMsg.open,curMsg.close,'down')}}</view>
+      </view>
+      <view class="goods-content_item">
+        <view class="label4"><i>高：</i> {{curMsg.high}}</view>
+        <view class="label5"><i>低：</i>{{curMsg.low}}</view>
+        <view class="label6"><i>量：</i>{{curMsg.volume}}</view>
+      </view>
+      <view class="goods-date">{{curMsg.day}}</view>
+    </view>
+  </view>
+  <!-- 画布 -->
+  <view class="canvas-box">
+    <cover-view class="cover-view">
+      <cover-image @tap.stop="onToLandscape"
+                   hover-class="click-hover-o"
+                   class="scale-img"
+                   src="../images/scale_big.png"
+                   mode="scaleToFill"
+                   lazy-load="false">
+      </cover-image>
+    </cover-view>
+    <scroll-view class="scroll_box"
+                 style="width:{{wWidth-yWidth}}px;height:{{cHeight}}px;position:absolute;"
+                 scroll-x
+                 scroll-left="{{scrollToRight}}"
+                 bindscroll="onScroll"
+                 bindtouchend="onTouchEnd"
+                 bindtouchstart="onTouchStart">
+      <!-- K线图 & x轴画布 -->
+      <canvas style="width:{{maincWidth}}px;height:{{cHeight}}px;position:absolute;background:#fff;"
+              canvas-id="mainContent"></canvas>
+      <!-- k线选中态 画布 -->
+      <canvas class="canvas"
+              style="width:{{maincWidth}}px;height:{{cHeight}}px;"
+              canvas-id="select-k-canvas"></canvas>
+      </image>
+    </scroll-view>
+  </view>
+  <!-- y轴画布 -->
+  <canvas class="y-axis"
+          style="width:{{yWidth}}px;height:{{cHeight}}px;margin-left:{{wWidth-yWidth}}px;background:#fff;"
+          canvas-id="yAxis"></canvas>
+</template>
+
+<script>
+import wepy from 'wepy';
+import kLinesDatas from '../utils/datas';
+import titlebar from '../components/title-bar-zl';
+import drawKLinesUtil from '../utils/drawKLinesUtil'
+import wxFormat from '../wxs/format.wxs'
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: 'K线图表'
+  };
+
+  wxs = {
+    wxFormat: wxFormat
+  }
+
+  components = {
+    titlebar: titlebar,
+  };
+
+  data = {
+    wWidth: 0,
+    wHeight: 0,
+    yWidth: 60,
+    xHeight: 50,
+    cHeight: 240,
+    goodsId: null,
+    goodsName: 'BTC/USDT',
+    goodsCode: null,
+    maincWidth: 0,  // mainCanvas 画布宽度
+    kDatas: [],
+    curMsg: {},
+    isScroll: false,
+    scrollToRight: 0,
+    mainCanvasImg: null,  // 画布生成的图片地址
+    tradeSignList: [
+      {
+        type: 'buy',
+        time: '2019-07-09 11:12:23',
+        price: '22.32'
+      },
+      {
+        type: 'sell',
+        time: '2019-07-11 10:30:00',
+        price: '22.61'
+      }
+    ],
+  };
+
+  onLoad () {
+    let _t = this;
+    wx.getSystemInfo({
+      success (res) {
+        _t.wWidth = res.windowWidth;
+        _t.wHeight = res.windowHeight;
+      }
+    });
+  }
+
+  onShow () {
+    this._onGetKLinesData();
+  }
+
+  // 获取数据
+  _onGetKLinesData () {
+    this.kDatas = kLinesDatas.kLines;
+    this.curMsg = this.kDatas[this.kDatas.length - 1];
+    this._onDrawInit();
+    this._onCanvasMain()
+  }
+
+  // 绘制初始化
+  _onDrawInit () {
+    const datas = this.kDatas
+    const yctx = wx.createCanvasContext('yAxis')
+    const mainctx = wx.createCanvasContext('mainContent')
+    const optctx = wx.createCanvasContext('select-k-canvas')
+    const minData = Math.min.apply(
+      Math,
+      datas.map(function (o) {
+        return o.low;
+      })
+    );
+    const maxData = Math.max.apply(
+      Math,
+      datas.map(function (o) {
+        return o.high;
+      })
+    );
+    let config = {
+      wWidth: this.wWidth,
+      wHeight: this.wHeight,
+      datas: datas,
+      signsList: this.tradeSignList,
+      kNum: datas.length,
+      yctx: yctx,
+      mainctx: mainctx,
+      optctx: optctx,
+      minNum: minData,
+      maxNum: maxData,
+      ycWidth: this.yWidth,
+      ycHeight: this.cHeight,
+      maincHeight: this.cHeight,
+      kWidth: 15,
+      k_margin_right: 10,
+      main_margin_left: 15,
+      screen_show_time: 2,
+      mainBgColor: '#fff'
+    }
+    this.maincWidth = drawKLinesUtil.init(config)
+  }
+
+  // 开始绘制
+  _onCanvasMain () {
+    let _t = this
+    drawKLinesUtil.onDrawYAxis()
+    drawKLinesUtil.onDrawXAxis()
+    // scrollview 中嵌套canvas，scroll-left 必须在draw回调里面去实现，否则不起作用
+    drawKLinesUtil.onDrawKLines(res => {
+      drawKLinesUtil.config.mainctx.draw(false, function (res) {
+        _t.scrollToRight = _t.maincWidth
+        _t.$apply()
+      })
+    })
+  }
+
+  onTouchStart (e) {
+    this.isScroll = false;
+  }
+
+  onTouchEnd (e) {
+    if (this.isScroll) {
+      return;
+    }
+    this.curMsg = drawKLinesUtil.onTouch(e.changedTouches[0].pageX)
+  }
+
+  onScroll (e) {
+    this.curMsg = drawKLinesUtil.onScroll(e.detail.scrollLeft)
+    this.isScroll = true;
+  }
+
+  methods = {
+    onToLandscape (e) {
+      wepy.navigateTo({ url: 'landscape' });
+    }
+  };
+}
+</script>

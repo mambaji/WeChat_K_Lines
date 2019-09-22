@@ -1,0 +1,122 @@
+<style lang="less" scoped>
+.container {
+  position: relative;
+  text-align: center;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+.title-bar--fixed {
+  left: 0;
+  width: 100%;
+  position: fixed;
+  z-index: 999;
+}
+.title-bar_left {
+  position: absolute;
+  left: 25rpx;
+  display: flex;
+  align-items: center;
+}
+.title-bar_arrow {
+  color: #000;
+  font-weight: bold;
+}
+.title-bar_text {
+  color: #000;
+  display: inline-block;
+  margin-left: -20px;
+  padding-left: 25px;
+}
+.title-bar_title {
+  position: relative;
+  margin: 0 auto;
+  max-width: 60%;
+}
+</style>
+ 
+<template>
+  <view class="container van-hairline--bottom {{fixed?'title-bar--fixed':''}}"
+        style="height:{{titleHeight}}px;padding-top:{{titleTop}}px;background-color:{{bgcolor}};">
+    <view class="title-bar_left"
+          @tap="onClickLeft">
+      <block wx:if="{{leftArrow || leftText}}">
+        <i wx:if="{{leftArrow}}"
+           class="iconfont icon-left title-bar_arrow font2"></i>
+        <view wx:if="{{leftText}}"
+              class="title-bar_text font4"
+              style="{{leftTextStyle}}">{{leftText}}</view>
+      </block>
+    </view>
+    <view class="title-bar_title zl-ellipsis font2"
+          style="{{titleNameStyle}}">{{titleName}}</view>
+    <view class="title-bar_right"></view>
+  </view>
+  <view wx:if="{{fixed}}"
+        style="height:{{titleHeight}}px;"></view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class titleBar extends wepy.component {
+  props = {
+    leftArrow: {
+      type: String,
+      default: 'true'
+    },
+    leftText: {
+      type: String,
+      default: ''
+    },
+    titleName: {
+      type: String,
+      default: '标题'
+    },
+    bgcolor: {
+      type: String,
+      default: '#fff'
+    },
+    leftTextStyle: {
+      type: String
+    },
+    leftTextStyle: {
+      type: String
+    },
+    titleNameStyle: {
+      type: String
+    },
+    fixed: {
+      type: Boolean,
+      default: true
+    }
+  };
+
+  data = {
+    titleHeight: 80,
+    titleTop: 30
+  };
+
+  onLoad() {
+    let _t = this;
+    wx.getSystemInfo({
+      success: function(res) {
+        console.log(res);
+        let h = res.statusBarHeight + 44;
+        let top = res.statusBarHeight + 8;
+        _t.titleHeight = h;
+        _t.titleTop = top;
+        _t.$apply();
+      },
+      fail: function(res) {
+        _t.titleHeight = 80;
+        _t.titleTop = 40;
+        _t.$apply();
+      }
+    });
+  }
+
+  methods = {
+    onClickLeft() {
+      this.$emit('click-left');
+    }
+  };
+}
+</script>
