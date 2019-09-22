@@ -1,8 +1,8 @@
 # 微信小程序K线图表
 demo使用的是wepy框架，如使用其他框架可直接将 utils 中的 drawKLinesUtil.js 复制到自己的项目中。
 ## demo运行图
-![image]('https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/k1.png')
-![image]('https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/k2.png')
+![image](https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/k1.png)
+![image](https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/k2.png)
 ## Demo 使用
 ``` js
   1. npm install  // npm安装
@@ -58,7 +58,7 @@ drawKLinesUtil.onScroll(scrollLeft)
 - yCanvas 与 scroll-view 同级别，因为yCanvas 不需要实现滚动；
 - mainCanvas 用于绘制k线图和x轴；optCanvas 用于绘制k线选中态；二者是同级别，optCanvas 覆盖 mainCanvas 之上；
 
-![image]('https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/klines.png')
+![image](https://github.com/ManbasJi/WeChat_K_Lines/blob/master/src/images/klines.png)
 
 ``` html
 
